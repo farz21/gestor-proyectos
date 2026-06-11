@@ -1,0 +1,27 @@
+{
+  "proyectos": [
+    {
+      "id": 1,
+      "nombre": "Portafolio personal",
+      "descripcion": "Mi sitio web de presentacion",
+      "fechaLimite": "2025-08-01"
+    }
+  ],
+  "tareas": [
+    {
+      "id": 1,
+      "proyectoId": 1,
+      "nombre": "Crear estructura HTML",
+      "responsable": "Ana",
+      "estado": "Completada"
+    }
+  ],
+  "comentarios": [
+    {
+      "id": 1,
+      "tareaId": 1,
+      "texto": "Estructura lista, falta el CSS",
+      "fecha": "2025-06-15"
+    }
+  ]
+}
