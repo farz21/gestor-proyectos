@@ -50,7 +50,7 @@ async function cargarProyectos() { // [cite: 77]
             `;
         });
 
-        listaProyectos.innerHTML = html; // Actualiza el DOM de inmediato [cite: 76]
+        listaProyectos.innerHTML = html; // Actualiza el DOM de inmediato 
     } catch (error) {
         console.error("Error al cargar proyectos:", error);
     }
@@ -73,9 +73,9 @@ window.seleccionarProyecto = function(id) {
 // 2. CREAR: Agregar Nuevo Proyecto
 // ==========================================
 window.crearProyecto = async function() { // [cite: 77]
-    const inputNombre = document.getElementById("input-proyecto-nombre");
-    const inputDesc = document.getElementById("input-proyecto-desc");
-    const inputFecha = document.getElementById("input-proyecto-fecha");
+    const inputNombre = document.getElementById("modal-proyecto-nombre");
+    const inputDesc = document.getElementById("modal-proyecto-desc");
+    const inputFecha = document.getElementById("modal-proyecto-fecha");
 
     if (!inputNombre.value.trim() || !inputDesc.value.trim() || !inputFecha.value) {
         alert("Por favor, completá todos los campos del proyecto.");
@@ -96,6 +96,11 @@ window.crearProyecto = async function() { // [cite: 77]
         inputDesc.value = "";
         inputFecha.value = "";
 
+        // Cerramos el modal de creación
+        const modalElemento = document.getElementById('modalCrearProyecto');
+        const modalInstancia = bootstrap.Modal.getInstance(modalElemento) || new bootstrap.Modal(modalElemento);
+        modalInstancia.hide();
+
         // Renderizamos de inmediato sin recargar la página 
         cargarProyectos();
     } catch (error) {
@@ -104,27 +109,50 @@ window.crearProyecto = async function() { // [cite: 77]
 };
 
 // ==========================================
-// 3. ACTUALIZAR: Reemplazar o Modificar Datos
+// 3. ACTUALIZAR: Reemplazar o Modificar Datos (AHORA CON MODAL)
 // ==========================================
-window.editarProyecto = async function(id, nombreAct, descAct, fechaAct) { // [cite: 77]
-    const nuevoNombre = prompt("Editar nombre del proyecto:", nombreAct);
-    if (!nuevoNombre || nuevoNombre.trim() === "") return;
+// Esta función solo abre el modal y le inyecta los datos viejos
+window.editarProyecto = function(id, nombreAct, descAct, fechaAct) { // [cite: 77]
+    // Guardamos el ID en el input oculto
+    document.getElementById("modal-editar-id").value = id;
+    
+    // Rellenamos los campos con la información actual
+    document.getElementById("modal-editar-nombre").value = nombreAct;
+    document.getElementById("modal-editar-desc").value = descAct;
+    document.getElementById("modal-editar-fecha").value = fechaAct;
 
-    const nuevaDesc = prompt("Editar descripción breve:", descAct);
-    if (!nuevaDesc || nuevaDesc.trim() === "") return;
+    // Mostramos el modal
+    const modalElemento = document.getElementById('modalEditarProyecto');
+    const modalInstancia = new bootstrap.Modal(modalElemento);
+    modalInstancia.show();
+};
 
-    const nuevaFecha = prompt("Editar fecha límite (AAAA-MM-DD):", fechaAct);
-    if (!nuevaFecha) return;
+// Esta función es la que llama el botón verde de "Guardar Cambios" dentro del modal
+window.guardarEdicionProyecto = async function() {
+    const id = document.getElementById("modal-editar-id").value;
+    const nuevoNombre = document.getElementById("modal-editar-nombre").value;
+    const nuevaDesc = document.getElementById("modal-editar-desc").value;
+    const nuevaFecha = document.getElementById("modal-editar-fecha").value;
+
+    if (!nuevoNombre.trim() || !nuevaDesc.trim() || !nuevaFecha) {
+        alert("Por favor, no dejes campos vacíos.");
+        return;
+    }
 
     try {
-        // Usamos PATCH para actualizar los campos modificados [cite: 56]
+        // Usamos PATCH para actualizar los campos modificados 
         await axios.patch(`${URL_BASE}/proyectos/${id}`, {
             nombre: nuevoNombre,
             descripcion: nuevaDesc,
             fechaLimite: nuevaFecha
         });
         
-        cargarProyectos(); // Refresco inmediato del DOM [cite: 76]
+        // Escondemos el modal
+        const modalElemento = document.getElementById('modalEditarProyecto');
+        const modalInstancia = bootstrap.Modal.getInstance(modalElemento);
+        modalInstancia.hide();
+
+        cargarProyectos(); // Refresco inmediato del DOM 
     } catch (error) {
         console.error("Error al editar proyecto:", error);
     }
@@ -163,7 +191,7 @@ window.eliminarProyecto = async function(id) { // [cite: 77]
             document.getElementById("lista-comentarios").innerHTML = '<p class="text-muted text-center mt-4">Seleccioná una tarea para ver el progreso.</p>';
         }
 
-        cargarProyectos(); // Actualiza el DOM de inmediato [cite: 76]
+        cargarProyectos(); // Actualiza el DOM de inmediato 
     } catch (error) {
         console.error("Error en la eliminación en cascada:", error);
     }
