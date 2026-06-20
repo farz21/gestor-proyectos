@@ -36,10 +36,10 @@
                 <div class="columna-crud bg-white border rounded shadow-sm p-3">
                     <h4 class="text-success border-bottom pb-2 mb-3">2. Tareas</h4>
                     
-                    <div class="mb-3 p-3 bg-light border rounded">
-                        <input type="text" id="input-tarea-nombre" class="form-control form-control-sm mb-2" placeholder="Nombre de la tarea">
-                        <input type="text" id="input-tarea-resp" class="form-control form-control-sm mb-2" placeholder="Responsable">
-                        <button type="button" class="btn btn-success btn-sm w-100" onclick="crearTarea()">Agregar Tarea</button>
+                    <div id="contenedor-boton-tarea" class="mb-3 d-none">
+                        <button type="button" class="btn btn-outline-success w-100 text-start shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#modalCrearTarea">
+                            + Añadir una tarea
+                        </button>
                     </div>
 
                     <div id="lista-tareas" class="scroll-lista">
@@ -52,9 +52,10 @@
                 <div class="columna-crud bg-white border rounded shadow-sm p-3">
                     <h4 class="text-warning border-bottom pb-2 mb-3">3. Comentarios</h4>
                     
-                    <div class="mb-3 p-3 bg-light border rounded">
-                        <textarea id="input-comentario-texto" class="form-control form-control-sm mb-2" rows="2" placeholder="Escribí un comentario de avance..."></textarea>
-                        <button type="button" class="btn btn-warning btn-sm w-100 text-dark" onclick="crearComentario()">Publicar</button>
+                    <div id="contenedor-boton-comentario" class="mb-3 d-none">
+                        <button type="button" class="btn btn-outline-warning w-100 text-start shadow-sm fw-bold text-dark" data-bs-toggle="modal" data-bs-target="#modalCrearComentario">
+                            + Añadir un comentario
+                        </button>
                     </div>
 
                     <div id="lista-comentarios" class="scroll-lista">
@@ -111,6 +112,88 @@
           </div>
         </div>
       </div>
+
+    <div class="modal fade" id="modalCrearTarea" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">Crear Nueva Tarea</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body bg-light">
+                    <input type="text" id="modal-tarea-nombre" class="form-control mb-3" placeholder="Nombre de la tarea">
+                    <input type="text" id="modal-tarea-resp" class="form-control" placeholder="Responsable">
+                </div>
+                <div class="modal-footer bg-light border-top-0 pt-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" onclick="crearTarea()">Guardar Tarea</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalEditarTarea" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-secondary text-white">
+                    <h5 class="modal-title">Editar Tarea</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body bg-light">
+                    <input type="hidden" id="modal-editar-tarea-id">
+                    <input type="text" id="modal-editar-tarea-nombre" class="form-control mb-3" placeholder="Nombre de la tarea">
+                    <input type="text" id="modal-editar-tarea-resp" class="form-control mb-3" placeholder="Responsable">
+                    <label class="form-label mb-1 small fw-bold text-muted">Estado:</label>
+                    <select id="modal-editar-tarea-estado" class="form-select">
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="En progreso">En progreso</option>
+                        <option value="Completada">Completada</option>
+                    </select>
+                </div>
+                <div class="modal-footer bg-light border-top-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" onclick="guardarEdicionTarea()">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalCrearComentario" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title">Añadir Comentario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body bg-light">
+                    <textarea id="modal-comentario-texto" class="form-control" rows="3" placeholder="Escribí un comentario de avance..."></textarea>
+                </div>
+                <div class="modal-footer bg-light border-top-0 pt-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-warning text-dark" onclick="crearComentario()">Publicar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalEditarComentario" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-secondary text-white">
+                    <h5 class="modal-title">Editar Comentario</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body bg-light">
+                    <input type="hidden" id="modal-editar-comentario-id">
+                    <textarea id="modal-editar-comentario-texto" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="modal-footer bg-light border-top-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" onclick="guardarEdicionComentario()">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
