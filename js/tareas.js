@@ -1,5 +1,3 @@
-const URL_BASE = "http://localhost:3000";
-
 const listaTareas = document.getElementById("lista-tareas");
 
 // ==========================================
@@ -8,7 +6,7 @@ const listaTareas = document.getElementById("lista-tareas");
 window.obtenerYRenderizarTareas = async function (proyectoId) {
   try {
     const response = await axios.get(
-      `${URL_BASE}/tareas?proyectoId=${proyectoId}`,
+      `${URL_BASE}/tareas?proyectoId=${proyectoId}`
     );
 
     const tareas = response.data;
@@ -21,11 +19,9 @@ window.obtenerYRenderizarTareas = async function (proyectoId) {
 
     let html = "";
 
-    // Usamos un bucle para renderizar la lista de tareas
     tareas.forEach((tarea) => {
       let badgeEstado = "";
 
-      // Aplicamos estilos visuales según el estado
       if (tarea.estado === "Pendiente") {
         badgeEstado = "bg-danger";
       } else if (tarea.estado === "En progreso") {
@@ -37,10 +33,10 @@ window.obtenerYRenderizarTareas = async function (proyectoId) {
       html += `
         <div class="card mb-2">
           <div class="card-body">
-
+            
             <h5 class="card-title">${tarea.nombre}</h5>
 
-            <p class="card-text mb-1">
+            <p class="card-text mb-2">
               👤 Responsable: ${tarea.responsable}
             </p>
 
@@ -51,12 +47,14 @@ window.obtenerYRenderizarTareas = async function (proyectoId) {
             <div class="d-flex gap-2 mt-3">
 
               <button
+                type="button"
                 class="btn btn-sm btn-outline-secondary"
                 onclick="editarTarea('${tarea.id}')">
                 Editar
               </button>
 
               <button
+                type="button"
                 class="btn btn-sm btn-outline-danger"
                 onclick="eliminarTarea('${tarea.id}')">
                 Eliminar
@@ -87,6 +85,11 @@ window.crearTarea = async function () {
     return;
   }
 
+  if (!window.proyectoActivoId) {
+    alert("Primero seleccioná un proyecto.");
+    return;
+  }
+
   const datosTarea = {
     nombre: inputNombre.value,
     responsable: inputResponsable.value,
@@ -97,11 +100,9 @@ window.crearTarea = async function () {
   try {
     await axios.post(`${URL_BASE}/tareas`, datosTarea);
 
-    // Limpiamos los inputs
     inputNombre.value = "";
     inputResponsable.value = "";
 
-    // Cerramos el modal
     const modalElemento = document.getElementById("modalCrearTarea");
 
     const modalInstancia =
@@ -110,7 +111,6 @@ window.crearTarea = async function () {
 
     modalInstancia.hide();
 
-    // Refrescamos la lista
     obtenerYRenderizarTareas(window.proyectoActivoId);
   } catch (error) {
     console.error("Error al crear tarea:", error);
@@ -126,10 +126,8 @@ window.editarTarea = async function (id) {
 
     const tarea = response.data;
 
-    // Guardamos el ID oculto
     document.getElementById("modal-editar-tarea-id").value = tarea.id;
 
-    // Rellenamos los campos
     document.getElementById("modal-editar-tarea-nombre").value =
       tarea.nombre;
 
@@ -139,7 +137,6 @@ window.editarTarea = async function (id) {
     document.getElementById("modal-editar-tarea-estado").value =
       tarea.estado;
 
-    // Mostramos el modal
     const modalElemento =
       document.getElementById("modalEditarTarea");
 
@@ -174,14 +171,12 @@ window.guardarEdicionTarea = async function () {
   }
 
   try {
-    // PATCH para modificar únicamente los campos necesarios
     await axios.patch(`${URL_BASE}/tareas/${id}`, {
       nombre,
       responsable,
       estado,
     });
 
-    // Cerramos el modal
     const modalElemento =
       document.getElementById("modalEditarTarea");
 
@@ -190,7 +185,6 @@ window.guardarEdicionTarea = async function () {
 
     modalInstancia.hide();
 
-    // Refrescamos el DOM sin recargar la página
     obtenerYRenderizarTareas(window.proyectoActivoId);
   } catch (error) {
     console.error("Error al editar tarea:", error);
@@ -203,31 +197,27 @@ window.guardarEdicionTarea = async function () {
 window.eliminarTarea = async function (id) {
   if (
     !confirm(
-      "⚠️ ¿Estás seguro? Se eliminará la tarea y todos sus comentarios.",
+      "⚠️ ¿Estás seguro? Se eliminará la tarea y todos sus comentarios."
     )
   ) {
     return;
   }
 
   try {
-    // 1. Obtener comentarios asociados
     const response = await axios.get(
-      `${URL_BASE}/comentarios?tareaId=${id}`,
+      `${URL_BASE}/comentarios?tareaId=${id}`
     );
 
     const comentarios = response.data;
 
-    // 2. Eliminar comentarios uno por uno
     for (const comentario of comentarios) {
       await axios.delete(
-        `${URL_BASE}/comentarios/${comentario.id}`,
+        `${URL_BASE}/comentarios/${comentario.id}`
       );
     }
 
-    // 3. Eliminar la tarea
     await axios.delete(`${URL_BASE}/tareas/${id}`);
 
-    // 4. Actualizar pantalla inmediatamente
     obtenerYRenderizarTareas(window.proyectoActivoId);
   } catch (error) {
     console.error("Error al eliminar tarea:", error);
