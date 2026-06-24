@@ -9,37 +9,32 @@ window.proyectoActivoId = null;
 // ==========================================
 async function cargarProyectos() {
   try {
-    // Para mostrar la cantidad de tareas por proyecto, traemos ambos datos en paralelo
     const [resProyectos, resTareas] = await Promise.all([
       axios.get(`${URL_BASE}/proyectos`),
       axios.get(`${URL_BASE}/tareas`),
     ]);
 
-    const proyectos = resProyectos.data; // aqui obtenemos el array de proyectos desde la respuesta de la API
+    const proyectos = resProyectos.data; 
     const tareas = resTareas.data;
 
     if (proyectos.length === 0) {
-      // Si no hay proyectos, mostramos un mensaje amigable
       listaProyectos.innerHTML =
         '<p class="text-muted text-center mt-3">No hay proyectos creados.</p>';
       return;
     }
 
     let html = "";
-    // Usamos un bucle para renderizar la lista de registros
     proyectos.forEach((proyecto) => {
-      // Filtramos las tareas que pertenecen a este proyecto para contarlas
+      // 🌟 COMPARACIÓN SEGURA: Convertimos ambos componentes a String para evitar fallos de tipo
       const cantidadTareas = tareas.filter(
-        (t) => t.proyectoId == proyecto.id,
+        (t) => String(t.proyectoId) === String(proyecto.id),
       ).length;
 
-      // Verificamos si este proyecto es el que está activo actualmente para mantener la clase visual
+      // 🌟 CLASE ACTIVA SEGURA: Comparación basada en texto plano
       const claseActiva =
-        proyecto.id === window.proyectoActivoId ? "tarjeta-activa" : "";
+        String(proyecto.id) === String(window.proyectoActivoId) ? "tarjeta-activa" : "";
 
-      // TAMIZADO DE FECHA: Transformamos la cadena "AAAA-MM-DD" en un array ["AAAA", "MM", "DD"]
       const partes = proyecto.fechaLimite.split("-");
-      // Reorganizamos el orden para que se visualice como "DD-MM-AAAA"
       const fechaFormateada = `${partes[2]}-${partes[1]}-${partes[0]}`;
 
       html += `
@@ -60,44 +55,47 @@ async function cargarProyectos() {
             `;
     });
 
-    listaProyectos.innerHTML = html; // Actualiza el DOM de inmediato
+    listaProyectos.innerHTML = html; 
   } catch (error) {
     console.error("Error al cargar proyectos:", error);
   }
 }
 
-// Función auxiliar para activar un proyecto y comunicárselo al módulo de Tareas
+window.cargarProyectos = cargarProyectos;
+
+// Función auxiliar para activar un proyecto
 window.seleccionarProyecto = function (id) {
-  window.proyectoActivoId = parseInt(id);
+  window.proyectoActivoId = id; 
+  window.tareaActivaId = null; // 🌟 SOLUCIÓN: Reseteamos la tarea activa para que no quede vinculada al proyecto anterior
 
   // Revela el botón de tareas al hacer clic en un proyecto
   document.getElementById("contenedor-boton-tarea").classList.remove("d-none");
+  
+  // Oculta el contenedor del botón de comentarios
+  document.getElementById("contenedor-boton-comentario").classList.add("d-none");
 
-  // Oculta el de comentarios (por si había quedado abierto de antes)
-  document
-    .getElementById("contenedor-boton-comentario")
-    .classList.add("d-none");
+  // 🌟 SOLUCIÓN: Limpiamos la columna de comentarios de inmediato con el marcador de posición original
+  document.getElementById("lista-comentarios").innerHTML =
+    '<p class="text-muted text-center mt-4">Seleccioná una tarea para ver el progreso.</p>';
 
-  cargarProyectos();
+  window.cargarProyectos(); 
 
   if (typeof window.obtenerYRenderizarTareas === "function") {
-    window.obtenerYRenderizarTareas(id);
+    window.obtenerYRenderizarTareas(window.proyectoActivoId);
   }
 };
 
 // ==========================================
 // 2. CREAR: Agregar Nuevo Proyecto
 // ==========================================
-window.crearProyecto = async function () {
+window.crearProyecto = async function (event) {
+  if (event) event.preventDefault(); 
+
   const inputNombre = document.getElementById("modal-proyecto-nombre");
   const inputDesc = document.getElementById("modal-proyecto-desc");
   const inputFecha = document.getElementById("modal-proyecto-fecha");
 
-  if (
-    !inputNombre.value.trim() ||
-    !inputDesc.value.trim() ||
-    !inputFecha.value
-  ) {
+  if (!inputNombre.value.trim() || !inputDesc.value.trim() || !inputFecha.value) {
     alert("Por favor, completá todos los campos del proyecto.");
     return;
   }
@@ -109,21 +107,16 @@ window.crearProyecto = async function () {
   };
 
   try {
-    await axios.post(`${URL_BASE}/proyectos`, datosProyecto); // se envía el nuevo proyecto a la API
+    await axios.post(`${URL_BASE}/proyectos`, datosProyecto);
 
-    // Limpiamos los campos de entrada
     inputNombre.value = "";
     inputDesc.value = "";
     inputFecha.value = "";
 
-    // Cerramos el modal de creación
     const modalElemento = document.getElementById("modalCrearProyecto");
-    const modalInstancia =
-      bootstrap.Modal.getInstance(modalElemento) ||
-      new bootstrap.Modal(modalElemento);
+    const modalInstancia = bootstrap.Modal.getInstance(modalElemento) || new bootstrap.Modal(modalElemento);
     modalInstancia.hide();
 
-    // Renderizamos de inmediato sin recargar la página
     cargarProyectos();
   } catch (error) {
     console.error("Error al crear proyecto:", error);
@@ -131,26 +124,22 @@ window.crearProyecto = async function () {
 };
 
 // ==========================================
-// 3. ACTUALIZAR: Reemplazar o Modificar Datos (AHORA CON MODAL)
+// 3. ACTUALIZAR: Reemplazar o Modificar Datos
 // ==========================================
-// Esta función solo abre el modal y le inyecta los datos viejos
 window.editarProyecto = function (id, nombreAct, descAct, fechaAct) {
-  // Guardamos el ID en el input oculto
   document.getElementById("modal-editar-id").value = id;
-
-  // Rellenamos los campos con la información actual
   document.getElementById("modal-editar-nombre").value = nombreAct;
   document.getElementById("modal-editar-desc").value = descAct;
   document.getElementById("modal-editar-fecha").value = fechaAct;
 
-  // Mostramos el modal
   const modalElemento = document.getElementById("modalEditarProyecto");
   const modalInstancia = new bootstrap.Modal(modalElemento);
   modalInstancia.show();
 };
 
-// Esta función es la que llama el botón verde de "Guardar Cambios" dentro del modal
-window.guardarEdicionProyecto = async function () {
+window.guardarEdicionProyecto = async function (event) {
+  if (event) event.preventDefault(); 
+
   const id = document.getElementById("modal-editar-id").value;
   const nuevoNombre = document.getElementById("modal-editar-nombre").value;
   const nuevaDesc = document.getElementById("modal-editar-desc").value;
@@ -162,19 +151,17 @@ window.guardarEdicionProyecto = async function () {
   }
 
   try {
-    // Usamos PATCH para actualizar los campos modificados
     await axios.patch(`${URL_BASE}/proyectos/${id}`, {
       nombre: nuevoNombre,
       descripcion: nuevaDesc,
       fechaLimite: nuevaFecha,
     });
 
-    // Escondemos el modal
     const modalElemento = document.getElementById("modalEditarProyecto");
     const modalInstancia = bootstrap.Modal.getInstance(modalElemento);
     modalInstancia.hide();
 
-    cargarProyectos(); // Refresco inmediato del DOM
+    cargarProyectos();
   } catch (error) {
     console.error("Error al editar proyecto:", error);
   }
@@ -184,50 +171,35 @@ window.guardarEdicionProyecto = async function () {
 // 4. ELIMINAR: Borrado en Cascada Doble
 // ==========================================
 window.eliminarProyecto = async function (id) {
-  if (
-    !confirm(
-      "⚠️ ¿Estás seguro? Esto eliminará el proyecto, todas sus tareas y sus respectivos comentarios.",
-    )
-  )
-    return;
+  if (!confirm("⚠️ ¿Estás seguro? Esto eliminará el proyecto, todas sus tareas y sus respectivos comentarios.")) return;
 
   try {
-    // 1. Conseguir todas las tareas asociadas a este proyecto 
     const resTareas = await axios.get(`${URL_BASE}/tareas?proyectoId=${id}`);
     const tareasAsociadas = resTareas.data;
 
-    // 2. Iterar por cada tarea para borrar sus comentarios primero 
     for (const tarea of tareasAsociadas) {
-      const resComentarios = await axios.get(
-        `${URL_BASE}/comentarios?tareaId=${tarea.id}`,
-      );
-      // Borramos los comentarios de esta tarea en particular
+      const resComentarios = await axios.get(`${URL_BASE}/comentarios?tareaId=${tarea.id}`);
       for (const comentario of resComentarios.data) {
         await axios.delete(`${URL_BASE}/comentarios/${comentario.id}`);
       }
-      // 3. Una vez limpia de comentarios, borramos la tarea 
       await axios.delete(`${URL_BASE}/tareas/${tarea.id}`);
     }
 
-    // 4. Finalmente, cuando la cascada hacia abajo está limpia, eliminamos el proyecto 
     await axios.delete(`${URL_BASE}/proyectos/${id}`);
 
-    // Si el proyecto eliminado era el que estaba activo en pantalla, limpiamos la selección
-    if (window.proyectoActivoId === parseInt(id)) {
+    if (String(window.proyectoActivoId) === String(id)) {
       window.proyectoActivoId = null;
-      // Opcional: Limpiar los contenedores de tareas y comentarios de las otras columnas
       document.getElementById("lista-tareas").innerHTML =
         '<p class="text-muted text-center mt-4">Seleccioná un proyecto para ver sus tareas.</p>';
       document.getElementById("lista-comentarios").innerHTML =
         '<p class="text-muted text-center mt-4">Seleccioná una tarea para ver el progreso.</p>';
     }
 
-    cargarProyectos(); // Actualiza el DOM de inmediato
+    cargarProyectos(); 
   } catch (error) {
     console.error("Error en la eliminación en cascada:", error);
   }
 };
 
 // --- INICIALIZACIÓN ---
-// Ejecuta la lectura inicial apenas se procesa el script
 cargarProyectos();

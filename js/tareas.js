@@ -1,225 +1,178 @@
+// ==========================================
+// MÓDULO DE TAREAS
+// ==========================================
+
+window.tareaActivaId = null;
 const listaTareas = document.getElementById("lista-tareas");
 
-// ==========================================
-// 1. LEER: Obtener y Renderizar Tareas
-// ==========================================
+// LEER: Obtener y Renderizar Tareas filtradas por proyecto
 window.obtenerYRenderizarTareas = async function (proyectoId) {
   try {
-    const response = await axios.get(
-      `${URL_BASE}/tareas?proyectoId=${proyectoId}`
-    );
-
-    const tareas = response.data;
+    const res = await axios.get(`${URL_BASE}/tareas?proyectoId=${proyectoId}`);
+    const tareas = res.data; 
 
     if (tareas.length === 0) {
       listaTareas.innerHTML =
-        '<p class="text-muted text-center mt-4">Este proyecto no tiene tareas.</p>';
+        '<p class="text-muted text-center mt-4">No hay tareas para este proyecto.</p>';
+      document.getElementById("lista-comentarios").innerHTML =
+        '<p class="text-muted text-center mt-4">Seleccioná una tarea para ver el progreso.</p>';
       return;
     }
 
     let html = "";
-
     tareas.forEach((tarea) => {
-      let badgeEstado = "";
+      let badgeColor = "bg-secondary";
+      if (tarea.estado === "Pendiente") badgeColor = "bg-warning text-dark";
+      if (tarea.estado === "En progreso") badgeColor = "bg-primary";
+      if (tarea.estado === "Completada") badgeColor = "bg-success";
 
-      if (tarea.estado === "Pendiente") {
-        badgeEstado = "bg-danger";
-      } else if (tarea.estado === "En progreso") {
-        badgeEstado = "bg-warning text-dark";
-      } else {
-        badgeEstado = "bg-success";
-      }
+      // 🌟 COMPARACIÓN SEGURA: Convertimos a String para resaltar la tarea seleccionada correctamente
+      const claseActiva =
+        String(tarea.id) === String(window.tareaActivaId)
+          ? "border-primary border-2 shadow-sm"
+          : "";
 
       html += `
-        <div class="card mb-2">
-          <div class="card-body">
-            
-            <h5 class="card-title">${tarea.nombre}</h5>
-
-            <p class="card-text mb-2">
-              👤 Responsable: ${tarea.responsable}
-            </p>
-
-            <span class="badge ${badgeEstado}">
-              ${tarea.estado}
-            </span>
-
-            <div class="d-flex gap-2 mt-3">
-
-              <button
-                type="button"
-                class="btn btn-sm btn-outline-secondary"
-                onclick="editarTarea('${tarea.id}')">
-                Editar
-              </button>
-
-              <button
-                type="button"
-                class="btn btn-sm btn-outline-danger"
-                onclick="eliminarTarea('${tarea.id}')">
-                Eliminar
-              </button>
-
-            </div>
-
-          </div>
-        </div>
-      `;
+                <div class="card mb-2 tarjeta-interactiva ${claseActiva}" onclick="seleccionarTarea('${tarea.id}')" style="cursor: pointer;">
+                    <div class="card-body py-2">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <h6 class="card-title mb-0">${tarea.nombre}</h6>
+                            <span class="badge ${badgeColor}">${tarea.estado}</span>
+                        </div>
+                        <p class="card-text small text-muted mb-2">👤 Responsable: ${tarea.responsable}</p>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0" onclick="event.stopPropagation(); editarTarea('${tarea.id}', '${tarea.nombre}', '${tarea.responsable}', '${tarea.estado}')">Editar</button>
+                            <button type="button" class="btn btn-sm btn-outline-danger py-0" onclick="event.stopPropagation(); eliminarTarea('${tarea.id}')">Eliminar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
     });
 
-    listaTareas.innerHTML = html;
+    listaTareas.innerHTML = html; 
   } catch (error) {
-    console.error("Error al cargar tareas:", error);
+    console.error("Error al cargar las tareas:", error);
   }
 };
 
-// ==========================================
-// 2. CREAR: Agregar Nueva Tarea
-// ==========================================
-window.crearTarea = async function () {
+window.seleccionarTarea = function (id) {
+  window.tareaActivaId = id; // 🌟 Guardamos el ID de la tarea exactamente como viene
+  document
+    .getElementById("contenedor-boton-comentario")
+    .classList.remove("d-none");
+
+  window.obtenerYRenderizarTareas(window.proyectoActivoId);
+
+  if (typeof window.obtenerYRenderizarComentarios === "function") {
+    window.obtenerYRenderizarComentarios(window.tareaActivaId);
+  }
+};
+
+// CREAR: Añadir una nueva tarea
+window.crearTarea = async function (event) {
+  if (event) event.preventDefault(); 
+
   const inputNombre = document.getElementById("modal-tarea-nombre");
-  const inputResponsable = document.getElementById("modal-tarea-resp");
+  const inputResp = document.getElementById("modal-tarea-resp");
 
-  if (!inputNombre.value.trim() || !inputResponsable.value.trim()) {
-    alert("Por favor completá todos los campos.");
+  if (!inputNombre.value.trim() || !inputResp.value.trim()) {
+    alert("Por favor, completá todos los campos.");
     return;
   }
 
-  if (!window.proyectoActivoId) {
-    alert("Primero seleccioná un proyecto.");
-    return;
-  }
-
-  const datosTarea = {
+  const nuevaTarea = {
     nombre: inputNombre.value,
-    responsable: inputResponsable.value,
+    responsable: inputResp.value,
     estado: "Pendiente",
-    proyectoId: window.proyectoActivoId,
+    proyectoId: window.proyectoActivoId, // 🌟 SOLUCIÓN: Guardamos el ID tal cual, sin forzar Number()
   };
 
   try {
-    await axios.post(`${URL_BASE}/tareas`, datosTarea);
+    await axios.post(`${URL_BASE}/tareas`, nuevaTarea);
 
     inputNombre.value = "";
-    inputResponsable.value = "";
-
+    inputResp.value = "";
     const modalElemento = document.getElementById("modalCrearTarea");
+    bootstrap.Modal.getInstance(modalElemento).hide();
 
-    const modalInstancia =
-      bootstrap.Modal.getInstance(modalElemento) ||
-      new bootstrap.Modal(modalElemento);
-
-    modalInstancia.hide();
-
-    obtenerYRenderizarTareas(window.proyectoActivoId);
+    window.obtenerYRenderizarTareas(window.proyectoActivoId);
+    
+    if (typeof window.cargarProyectos === "function") {
+      window.cargarProyectos();
+    }
   } catch (error) {
-    console.error("Error al crear tarea:", error);
+    console.error("Error al crear la tarea:", error);
   }
 };
 
-// ==========================================
-// 3. ACTUALIZAR: Abrir Modal de Edición
-// ==========================================
-window.editarTarea = async function (id) {
-  try {
-    const response = await axios.get(`${URL_BASE}/tareas/${id}`);
+// ACTUALIZAR: Preparar edición
+window.editarTarea = function (id, nombre, resp, estado) {
+  document.getElementById("modal-editar-tarea-id").value = id;
+  document.getElementById("modal-editar-tarea-nombre").value = nombre;
+  document.getElementById("modal-editar-tarea-resp").value = resp;
+  document.getElementById("modal-editar-tarea-estado").value = estado;
 
-    const tarea = response.data;
-
-    document.getElementById("modal-editar-tarea-id").value = tarea.id;
-
-    document.getElementById("modal-editar-tarea-nombre").value =
-      tarea.nombre;
-
-    document.getElementById("modal-editar-tarea-resp").value =
-      tarea.responsable;
-
-    document.getElementById("modal-editar-tarea-estado").value =
-      tarea.estado;
-
-    const modalElemento =
-      document.getElementById("modalEditarTarea");
-
-    const modalInstancia =
-      new bootstrap.Modal(modalElemento);
-
-    modalInstancia.show();
-  } catch (error) {
-    console.error("Error al cargar tarea:", error);
-  }
+  const modalElemento = document.getElementById("modalEditarTarea");
+  new bootstrap.Modal(modalElemento).show();
 };
 
-// ==========================================
-// 4. ACTUALIZAR: Guardar Cambios
-// ==========================================
-window.guardarEdicionTarea = async function () {
-  const id =
-    document.getElementById("modal-editar-tarea-id").value;
+// ACTUALIZAR: Guardar edición usando PATCH
+window.guardarEdicionTarea = async function (event) {
+  if (event) event.preventDefault(); 
 
-  const nombre =
-    document.getElementById("modal-editar-tarea-nombre").value;
+  const id = document.getElementById("modal-editar-tarea-id").value;
+  const nuevoNombre = document.getElementById("modal-editar-tarea-nombre").value;
+  const nuevoResp = document.getElementById("modal-editar-tarea-resp").value;
+  const nuevoEstado = document.getElementById("modal-editar-tarea-estado").value;
 
-  const responsable =
-    document.getElementById("modal-editar-tarea-resp").value;
-
-  const estado =
-    document.getElementById("modal-editar-tarea-estado").value;
-
-  if (!nombre.trim() || !responsable.trim()) {
-    alert("Por favor completá todos los campos.");
+  if (!nuevoNombre.trim() || !nuevoResp.trim()) {
+    alert("Los campos no pueden estar vacíos.");
     return;
   }
 
   try {
     await axios.patch(`${URL_BASE}/tareas/${id}`, {
-      nombre,
-      responsable,
-      estado,
+      nombre: nuevoNombre,
+      responsable: nuevoResp,
+      estado: nuevoEstado,
     });
 
-    const modalElemento =
-      document.getElementById("modalEditarTarea");
+    const modalElemento = document.getElementById("modalEditarTarea");
+    bootstrap.Modal.getInstance(modalElemento).hide();
 
-    const modalInstancia =
-      bootstrap.Modal.getInstance(modalElemento);
-
-    modalInstancia.hide();
-
-    obtenerYRenderizarTareas(window.proyectoActivoId);
+    window.obtenerYRenderizarTareas(window.proyectoActivoId);
   } catch (error) {
-    console.error("Error al editar tarea:", error);
+    console.error("Error al actualizar la tarea:", error);
   }
 };
 
-// ==========================================
-// 5. ELIMINAR: Borrado en Cascada
-// ==========================================
+// ELIMINAR: Borrado con cascada 
 window.eliminarTarea = async function (id) {
-  if (
-    !confirm(
-      "⚠️ ¿Estás seguro? Se eliminará la tarea y todos sus comentarios."
-    )
-  ) {
-    return;
-  }
+  if (!confirm("⚠️ ¿Eliminar tarea? También se borrarán todos sus comentarios.")) return;
 
   try {
-    const response = await axios.get(
-      `${URL_BASE}/comentarios?tareaId=${id}`
-    );
-
-    const comentarios = response.data;
-
-    for (const comentario of comentarios) {
-      await axios.delete(
-        `${URL_BASE}/comentarios/${comentario.id}`
-      );
+    const resComentarios = await axios.get(`${URL_BASE}/comentarios?tareaId=${id}`);
+    for (const comentario of resComentarios.data) {
+      await axios.delete(`${URL_BASE}/comentarios/${comentario.id}`);
     }
 
     await axios.delete(`${URL_BASE}/tareas/${id}`);
 
-    obtenerYRenderizarTareas(window.proyectoActivoId);
+    if (window.tareaActivaId == id) {
+      window.tareaActivaId = null;
+      document.getElementById("lista-comentarios").innerHTML =
+        '<p class="text-muted text-center mt-4">Seleccioná una tarea para ver el progreso.</p>';
+      document
+        .getElementById("contenedor-boton-comentario")
+        .classList.add("d-none");
+    }
+
+    window.obtenerYRenderizarTareas(window.proyectoActivoId);
+    
+    if (typeof window.cargarProyectos === "function") {
+      window.cargarProyectos();
+    }
   } catch (error) {
-    console.error("Error al eliminar tarea:", error);
+    console.error("Error al eliminar la tarea:", error);
   }
 };
