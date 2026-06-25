@@ -79,7 +79,7 @@ window.crearComentario = async function (event) {
     }
 };
 
-// ACTUALIZAR: Preparar edición de comentario
+// EDITAR: Preparar edición de comentario
 window.editarComentario = function (id, texto) {
     document.getElementById("modal-editar-comentario-id").value = id;
     document.getElementById("modal-editar-comentario-texto").value = texto;

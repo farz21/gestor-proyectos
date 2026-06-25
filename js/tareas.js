@@ -121,7 +121,7 @@ window.crearTarea = async function (event) {
   }
 };
 
-// ACTUALIZAR: Preparar edición
+// EDITAR: Preparar edición
 window.editarTarea = function (id, nombre, resp, estado) {
   document.getElementById("modal-editar-tarea-id").value = id;
   document.getElementById("modal-editar-tarea-nombre").value = nombre;

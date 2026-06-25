@@ -127,7 +127,7 @@ window.crearProyecto = async function (event) {
 };
 
 // ==========================================
-// 3. ACTUALIZAR: Reemplazar o Modificar Datos
+// 3. EDITAR: Reemplazar o Modificar Datos
 // ==========================================
 window.editarProyecto = function (id, nombreAct, descAct, fechaAct) {
   document.getElementById("modal-editar-id").value = id;
