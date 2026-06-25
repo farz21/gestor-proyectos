@@ -5,6 +5,12 @@
       "nombre": "Portafolio personal",
       "descripcion": "Mi sitio web de presentacion",
       "fechaLimite": "2025-08-01"
+    },
+    {
+      "nombre": "E-commerce de productos gamers",
+      "descripcion": "Una tienda virtual de periféricos para el gaming",
+      "fechaLimite": "2026-07-25",
+      "id": "5-7XtaUfPvs"
     }
   ],
   "tareas": [
@@ -12,8 +18,29 @@
       "id": "1",
       "proyectoId": 1,
       "nombre": "Crear estructura HTML",
-      "responsable": "Ana",
+      "responsable": "Pilar",
       "estado": "Completada"
+    },
+    {
+      "nombre": "Crear estilo moderno con CSS",
+      "responsable": "Pilar",
+      "estado": "En progreso",
+      "proyectoId": "1",
+      "id": "FxVXifOtbBs"
+    },
+    {
+      "nombre": "Slide principal",
+      "responsable": "Fabrizio",
+      "estado": "En progreso",
+      "proyectoId": "5-7XtaUfPvs",
+      "id": "dsnG0Ve8XoI"
+    },
+    {
+      "nombre": "Sección de productos",
+      "responsable": "Caetano",
+      "estado": "Pendiente",
+      "proyectoId": "5-7XtaUfPvs",
+      "id": "m8E8tip_-dw"
     }
   ],
   "comentarios": [
@@ -21,7 +48,19 @@
       "id": "1",
       "tareaId": 1,
       "texto": "Estructura lista, falta el CSS",
-      "fecha": "2025-06-15"
+      "fecha": "15-06-2026"
+    },
+    {
+      "texto": "Paleta de colores definida",
+      "tareaId": "FxVXifOtbBs",
+      "fecha": "24-06-2026",
+      "id": "fLa_7zy2v8Q"
+    },
+    {
+      "texto": "Se hablo con el cliente para definir el diseño",
+      "tareaId": "dsnG0Ve8XoI",
+      "fecha": "24-06-2026",
+      "id": "d5miv3dah4I"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"

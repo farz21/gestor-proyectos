@@ -3,13 +3,26 @@
 // ==========================================
 
 window.tareaActivaId = null;
+window.filtroActualEstado = "Todos"; // 🌟 Variable para tu nuevo filtro visual
 const listaTareas = document.getElementById("lista-tareas");
+
+// 🌟 Función para que funcione el select del HTML
+window.filtrarTareas = function () {
+    window.filtroActualEstado = document.getElementById("filtro-tareas-estado").value;
+    window.obtenerYRenderizarTareas(window.proyectoActivoId);
+};
 
 // LEER: Obtener y Renderizar Tareas filtradas por proyecto
 window.obtenerYRenderizarTareas = async function (proyectoId) {
   try {
-    const res = await axios.get(`${URL_BASE}/tareas?proyectoId=${proyectoId}`);
-    const tareas = res.data; 
+    // 🌟 SOLUCIÓN: Traemos todas las tareas y filtramos seguro en JavaScript
+    const res = await axios.get(`${URL_BASE}/tareas`);
+    let tareas = res.data.filter(t => String(t.proyectoId) === String(proyectoId)); 
+
+    // Aplicamos el filtro visual del select
+    if (window.filtroActualEstado !== "Todos") {
+        tareas = tareas.filter(t => t.estado === window.filtroActualEstado);
+    }
 
     if (tareas.length === 0) {
       listaTareas.innerHTML =
@@ -26,14 +39,13 @@ window.obtenerYRenderizarTareas = async function (proyectoId) {
       if (tarea.estado === "En progreso") badgeColor = "bg-primary";
       if (tarea.estado === "Completada") badgeColor = "bg-success";
 
-      // 🌟 COMPARACIÓN SEGURA: Convertimos a String para resaltar la tarea seleccionada correctamente
       const claseActiva =
         String(tarea.id) === String(window.tareaActivaId)
           ? "border-primary border-2 shadow-sm"
           : "";
 
       html += `
-                <div class="card mb-2 tarjeta-interactiva ${claseActiva}" onclick="seleccionarTarea('${tarea.id}')" style="cursor: pointer;">
+                <div class="card mb-2 tarjeta-interactiva animar-entrada ${claseActiva}" onclick="seleccionarTarea('${tarea.id}')" style="cursor: pointer;">
                     <div class="card-body py-2">
                         <div class="d-flex justify-content-between align-items-start mb-1">
                             <h6 class="card-title mb-0">${tarea.nombre}</h6>
@@ -41,8 +53,8 @@ window.obtenerYRenderizarTareas = async function (proyectoId) {
                         </div>
                         <p class="card-text small text-muted mb-2">👤 Responsable: ${tarea.responsable}</p>
                         <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-sm btn-outline-secondary py-0" onclick="event.stopPropagation(); editarTarea('${tarea.id}', '${tarea.nombre}', '${tarea.responsable}', '${tarea.estado}')">Editar</button>
-                            <button type="button" class="btn btn-sm btn-outline-danger py-0" onclick="event.stopPropagation(); eliminarTarea('${tarea.id}')">Eliminar</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0" onclick="event.stopPropagation(); editarTarea('${tarea.id}', '${tarea.nombre}', '${tarea.responsable}', '${tarea.estado}')"><i class="bi bi-pencil-square"></i> Editar</button>
+                            <button type="button" class="btn btn-sm btn-outline-danger py-0" onclick="event.stopPropagation(); eliminarTarea('${tarea.id}')"><i class="bi bi-trash3"></i> Eliminar</button>
                         </div>
                     </div>
                 </div>
@@ -56,7 +68,7 @@ window.obtenerYRenderizarTareas = async function (proyectoId) {
 };
 
 window.seleccionarTarea = function (id) {
-  window.tareaActivaId = id; // 🌟 Guardamos el ID de la tarea exactamente como viene
+  window.tareaActivaId = id; 
   document
     .getElementById("contenedor-boton-comentario")
     .classList.remove("d-none");
@@ -84,7 +96,7 @@ window.crearTarea = async function (event) {
     nombre: inputNombre.value,
     responsable: inputResp.value,
     estado: "Pendiente",
-    proyectoId: window.proyectoActivoId, // 🌟 SOLUCIÓN: Guardamos el ID tal cual, sin forzar Number()
+    proyectoId: window.proyectoActivoId, 
   };
 
   try {
@@ -94,6 +106,10 @@ window.crearTarea = async function (event) {
     inputResp.value = "";
     const modalElemento = document.getElementById("modalCrearTarea");
     bootstrap.Modal.getInstance(modalElemento).hide();
+
+    // Reseteamos el filtro a "Todos" para que la tarea nueva siempre se vea
+    document.getElementById("filtro-tareas-estado").value = "Todos";
+    window.filtroActualEstado = "Todos";
 
     window.obtenerYRenderizarTareas(window.proyectoActivoId);
     

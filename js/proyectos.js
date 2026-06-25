@@ -47,8 +47,8 @@ async function cargarProyectos() {
                             <span class="badge bg-primary">📋 Tareas: ${cantidadTareas}</span>
                         </div>
                         <div class="d-flex gap-2 mt-2">
-                            <button type="button" class="btn btn-sm btn-outline-secondary py-0" onclick="event.stopPropagation(); editarProyecto('${proyecto.id}', '${proyecto.nombre}', '${proyecto.descripcion}', '${proyecto.fechaLimite}')">Editar</button>
-                            <button type="button" class="btn btn-sm btn-outline-danger py-0" onclick="event.stopPropagation(); eliminarProyecto('${proyecto.id}')">Eliminar</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0" onclick="event.stopPropagation(); editarProyecto('${proyecto.id}', '${proyecto.nombre}', '${proyecto.descripcion}', '${proyecto.fechaLimite}')"><i class="bi bi-pencil-square"></i> Editar</button>
+                            <button type="button" class="btn btn-sm btn-outline-danger py-0" onclick="event.stopPropagation(); eliminarProyecto('${proyecto.id}')"><i class="bi bi-trash3"></i> Eliminar</button>
                         </div>
                     </div>
                 </div>
@@ -66,15 +66,18 @@ window.cargarProyectos = cargarProyectos;
 // Función auxiliar para activar un proyecto
 window.seleccionarProyecto = function (id) {
   window.proyectoActivoId = id; 
-  window.tareaActivaId = null; // 🌟 SOLUCIÓN: Reseteamos la tarea activa para que no quede vinculada al proyecto anterior
+  window.tareaActivaId = null; 
 
-  // Revela el botón de tareas al hacer clic en un proyecto
+  // 1. Revela el botón de tareas
   document.getElementById("contenedor-boton-tarea").classList.remove("d-none");
   
-  // Oculta el contenedor del botón de comentarios
+  // 🌟 2. REVELA EL FILTRO (ESTA ES LA LÍNEA QUE FALTA)
+  document.getElementById("contenedor-filtro-tarea").classList.remove("d-none");
+  
+  // 3. Oculta el contenedor del botón de comentarios
   document.getElementById("contenedor-boton-comentario").classList.add("d-none");
 
-  // 🌟 SOLUCIÓN: Limpiamos la columna de comentarios de inmediato con el marcador de posición original
+  // 4. Limpiamos la columna de comentarios
   document.getElementById("lista-comentarios").innerHTML =
     '<p class="text-muted text-center mt-4">Seleccioná una tarea para ver el progreso.</p>';
 
