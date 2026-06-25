@@ -154,11 +154,11 @@ window.guardarEdicionProyecto = async function (event) {
   }
 
   try {
-    await axios.patch(`${URL_BASE}/proyectos/${id}`, {
-      nombre: nuevoNombre,
-      descripcion: nuevaDesc,
-      fechaLimite: nuevaFecha,
-    });
+    await axios.put(`${URL_BASE}/proyectos/${id}`, {
+  nombre: nuevoNombre,
+  descripcion: nuevaDesc,
+  fechaLimite: nuevaFecha,
+});
 
     const modalElemento = document.getElementById("modalEditarProyecto");
     const modalInstancia = bootstrap.Modal.getInstance(modalElemento);
