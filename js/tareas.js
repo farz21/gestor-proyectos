@@ -3,28 +3,33 @@
 // ==========================================
 
 window.tareaActivaId = null;
-window.filtroActualEstado = "Todos"; // 🌟 Variable para tu nuevo filtro visual
+window.filtroActualEstado = "Todos"; // Variable para tu nuevo filtro visual
 const listaTareas = document.getElementById("lista-tareas");
 
-// 🌟 Función para que funcione el select del HTML
+// Función para que funcione el select del HTML
 window.filtrarTareas = function () {
-    window.filtroActualEstado = document.getElementById("filtro-tareas-estado").value;
-    window.obtenerYRenderizarTareas(window.proyectoActivoId);
+  window.filtroActualEstado = document.getElementById(
+    "filtro-tareas-estado",
+  ).value;
+  window.obtenerYRenderizarTareas(window.proyectoActivoId);
 };
 
 // LEER: Obtener y Renderizar Tareas filtradas por proyecto
 window.obtenerYRenderizarTareas = async function (proyectoId) {
   try {
-    // 🌟 SOLUCIÓN: Traemos todas las tareas y filtramos seguro en JavaScript
+    // SOLUCIÓN: Traemos todas las tareas y filtramos seguro en JavaScript
     const res = await axios.get(`${URL_BASE}/tareas`);
-    let tareas = res.data.filter(t => String(t.proyectoId) === String(proyectoId)); 
+    let tareas = res.data.filter(
+      (t) => String(t.proyectoId) === String(proyectoId),
+    );
 
     // Aplicamos el filtro visual del select
     if (window.filtroActualEstado !== "Todos") {
-        tareas = tareas.filter(t => t.estado === window.filtroActualEstado);
+      tareas = tareas.filter((t) => t.estado === window.filtroActualEstado);
     }
 
     if (tareas.length === 0) {
+      // Si no hay tareas, mostramos un mensaje y reseteamos comentarios
       listaTareas.innerHTML =
         '<p class="text-muted text-center mt-4">No hay tareas para este proyecto.</p>';
       document.getElementById("lista-comentarios").innerHTML =
@@ -34,6 +39,7 @@ window.obtenerYRenderizarTareas = async function (proyectoId) {
 
     let html = "";
     tareas.forEach((tarea) => {
+      // Iteramos sobre las tareas filtradas
       let badgeColor = "bg-secondary";
       if (tarea.estado === "Pendiente") badgeColor = "bg-warning text-dark";
       if (tarea.estado === "En progreso") badgeColor = "bg-primary";
@@ -43,7 +49,7 @@ window.obtenerYRenderizarTareas = async function (proyectoId) {
         String(tarea.id) === String(window.tareaActivaId)
           ? "border-primary border-2 shadow-sm"
           : "";
-
+      // Renderizamos cada tarea con su información y botones de acción
       html += `
                 <div class="card mb-2 tarjeta-interactiva animar-entrada ${claseActiva}" onclick="seleccionarTarea('${tarea.id}')" style="cursor: pointer;">
                     <div class="card-body py-2">
@@ -61,14 +67,14 @@ window.obtenerYRenderizarTareas = async function (proyectoId) {
             `;
     });
 
-    listaTareas.innerHTML = html; 
+    listaTareas.innerHTML = html;
   } catch (error) {
     console.error("Error al cargar las tareas:", error);
   }
 };
 
 window.seleccionarTarea = function (id) {
-  window.tareaActivaId = id; 
+  window.tareaActivaId = id;
   document
     .getElementById("contenedor-boton-comentario")
     .classList.remove("d-none");
@@ -82,7 +88,7 @@ window.seleccionarTarea = function (id) {
 
 // CREAR: Añadir una nueva tarea
 window.crearTarea = async function (event) {
-  if (event) event.preventDefault(); 
+  if (event) event.preventDefault();
 
   const inputNombre = document.getElementById("modal-tarea-nombre");
   const inputResp = document.getElementById("modal-tarea-resp");
@@ -96,11 +102,11 @@ window.crearTarea = async function (event) {
     nombre: inputNombre.value,
     responsable: inputResp.value,
     estado: "Pendiente",
-    proyectoId: window.proyectoActivoId, 
+    proyectoId: window.proyectoActivoId,
   };
 
   try {
-    await axios.post(`${URL_BASE}/tareas`, nuevaTarea);
+    await axios.post(`${URL_BASE}/tareas`, nuevaTarea); // Agregamos la nueva tarea al proyecto activo
 
     inputNombre.value = "";
     inputResp.value = "";
@@ -112,7 +118,7 @@ window.crearTarea = async function (event) {
     window.filtroActualEstado = "Todos";
 
     window.obtenerYRenderizarTareas(window.proyectoActivoId);
-    
+
     if (typeof window.cargarProyectos === "function") {
       window.cargarProyectos();
     }
@@ -121,7 +127,7 @@ window.crearTarea = async function (event) {
   }
 };
 
-// ACTUALIZAR: Preparar edición
+// EDITAR: Preparar edición
 window.editarTarea = function (id, nombre, resp, estado) {
   document.getElementById("modal-editar-tarea-id").value = id;
   document.getElementById("modal-editar-tarea-nombre").value = nombre;
@@ -134,12 +140,16 @@ window.editarTarea = function (id, nombre, resp, estado) {
 
 // ACTUALIZAR: Guardar edición usando PATCH
 window.guardarEdicionTarea = async function (event) {
-  if (event) event.preventDefault(); 
+  if (event) event.preventDefault();
 
   const id = document.getElementById("modal-editar-tarea-id").value;
-  const nuevoNombre = document.getElementById("modal-editar-tarea-nombre").value;
+  const nuevoNombre = document.getElementById(
+    "modal-editar-tarea-nombre",
+  ).value;
   const nuevoResp = document.getElementById("modal-editar-tarea-resp").value;
-  const nuevoEstado = document.getElementById("modal-editar-tarea-estado").value;
+  const nuevoEstado = document.getElementById(
+    "modal-editar-tarea-estado",
+  ).value;
 
   if (!nuevoNombre.trim() || !nuevoResp.trim()) {
     alert("Los campos no pueden estar vacíos.");
@@ -147,7 +157,7 @@ window.guardarEdicionTarea = async function (event) {
   }
 
   try {
-    await axios.patch(`${URL_BASE}/tareas/${id}`, {
+    await axios.patch(`${URL_BASE}/tareas/${id}`, { // Actualizamos la tarea con los nuevos datos
       nombre: nuevoNombre,
       responsable: nuevoResp,
       estado: nuevoEstado,
@@ -162,17 +172,22 @@ window.guardarEdicionTarea = async function (event) {
   }
 };
 
-// ELIMINAR: Borrado con cascada 
+// ELIMINAR: Borrado con cascada
 window.eliminarTarea = async function (id) {
-  if (!confirm("⚠️ ¿Eliminar tarea? También se borrarán todos sus comentarios.")) return;
+  if (
+    !confirm("⚠️ ¿Eliminar tarea? También se borrarán todos sus comentarios.")
+  )
+    return;
 
   try {
-    const resComentarios = await axios.get(`${URL_BASE}/comentarios?tareaId=${id}`);
+    const resComentarios = await axios.get(
+      `${URL_BASE}/comentarios?tareaId=${id}`,
+    );
     for (const comentario of resComentarios.data) {
       await axios.delete(`${URL_BASE}/comentarios/${comentario.id}`);
     }
 
-    await axios.delete(`${URL_BASE}/tareas/${id}`);
+    await axios.delete(`${URL_BASE}/tareas/${id}`); // Eliminamos la tarea después de borrar sus comentarios
 
     if (window.tareaActivaId == id) {
       window.tareaActivaId = null;
@@ -184,7 +199,7 @@ window.eliminarTarea = async function (id) {
     }
 
     window.obtenerYRenderizarTareas(window.proyectoActivoId);
-    
+
     if (typeof window.cargarProyectos === "function") {
       window.cargarProyectos();
     }

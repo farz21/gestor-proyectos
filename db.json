@@ -51,16 +51,16 @@
       "fecha": "15-06-2026"
     },
     {
-      "texto": "Paleta de colores definida",
-      "tareaId": "FxVXifOtbBs",
-      "fecha": "24-06-2026",
-      "id": "fLa_7zy2v8Q"
-    },
-    {
       "texto": "Se hablo con el cliente para definir el diseño",
       "tareaId": "dsnG0Ve8XoI",
       "fecha": "24-06-2026",
       "id": "d5miv3dah4I"
+    },
+    {
+      "texto": "Paleta de colores definida",
+      "tareaId": "FxVXifOtbBs",
+      "fecha": "25-06-2026",
+      "id": "itlk13t5D88"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
